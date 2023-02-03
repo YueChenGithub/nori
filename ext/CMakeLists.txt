@@ -41,9 +41,9 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU"
   CHECK_CXX_COMPILER_FLAG("-std=c++11" HAS_CPP11_FLAG)
 
   if (HAS_CPP14_FLAG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
   elseif (HAS_CPP11_FLAG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
   else()
     message(FATAL_ERROR "Unsupported compiler -- Nori requires C++11 support!")
   endif()
