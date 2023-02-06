@@ -13,8 +13,11 @@
 
 NORI_NAMESPACE_BEGIN
 
+
+
 Scene::Scene(const PropertyList &) {
     m_accel = new Accel();
+    //m_accel = new OctTree();
 }
 
 Scene::~Scene() {
@@ -31,11 +34,11 @@ void Scene::activate() {
         throw NoriException("No integrator was specified!");
     if (!m_camera)
         throw NoriException("No camera was specified!");
-    
+
     if (!m_sampler) {
         /* Create a default (independent) sampler */
         m_sampler = static_cast<Sampler*>(
-            NoriObjectFactory::createInstance("independent", PropertyList()));
+                NoriObjectFactory::createInstance("independent", PropertyList()));
     }
 
     cout << endl;
@@ -46,17 +49,19 @@ void Scene::activate() {
 void Scene::addChild(NoriObject *obj) {
     switch (obj->getClassType()) {
         case EMesh: {
-                Mesh *mesh = static_cast<Mesh *>(obj);
-                m_accel->addMesh(mesh);
-                m_meshes.push_back(mesh);
+            Mesh *mesh = static_cast<Mesh *>(obj);
+            m_accel->addMesh(mesh);
+            m_meshes.push_back(mesh);
+            if(mesh->isEmitter()){
+                m_meshes_emitter.push_back(mesh);
             }
+        }
             break;
-        
+
         case EEmitter: {
-                //Emitter *emitter = static_cast<Emitter *>(obj);
-                /* TBD */
-                throw NoriException("Scene::addChild(): You need to implement this for emitters");
-            }
+            Emitter *emitter = static_cast<Emitter *>(obj);
+            m_emitters.push_back(emitter);
+        }
             break;
 
         case ESampler:
@@ -70,7 +75,7 @@ void Scene::addChild(NoriObject *obj) {
                 throw NoriException("There can only be one camera per scene!");
             m_camera = static_cast<Camera *>(obj);
             break;
-        
+
         case EIntegrator:
             if (m_integrator)
                 throw NoriException("There can only be one integrator per scene!");
@@ -79,7 +84,7 @@ void Scene::addChild(NoriObject *obj) {
 
         default:
             throw NoriException("Scene::addChild(<%s>) is not supported!",
-                classTypeName(obj->getClassType()));
+                                classTypeName(obj->getClassType()));
     }
 }
 
@@ -93,17 +98,17 @@ std::string Scene::toString() const {
     }
 
     return tfm::format(
-        "Scene[\n"
-        "  integrator = %s,\n"
-        "  sampler = %s\n"
-        "  camera = %s,\n"
-        "  meshes = {\n"
-        "  %s  }\n"
-        "]",
-        indent(m_integrator->toString()),
-        indent(m_sampler->toString()),
-        indent(m_camera->toString()),
-        indent(meshes, 2)
+            "Scene[\n"
+            "  integrator = %s,\n"
+            "  sampler = %s\n"
+            "  camera = %s,\n"
+            "  meshes = {\n"
+            "  %s  }\n"
+            "]",
+            indent(m_integrator->toString()),
+            indent(m_sampler->toString()),
+            indent(m_camera->toString()),
+            indent(meshes, 2)
     );
 }
 

@@ -9,8 +9,16 @@
 #include <nori/object.h>
 #include <nori/frame.h>
 #include <nori/bbox.h>
+#include <nori/dpdf.h>
 
 NORI_NAMESPACE_BEGIN
+
+struct SampleMeshResult
+{
+    Point3f p;
+    Normal3f n;
+    float pdf;
+};
 
 /**
  * \brief Intersection data structure
@@ -20,7 +28,8 @@ NORI_NAMESPACE_BEGIN
  * as well as two local coordinate frames (one that corresponds to the true
  * geometry, and one that is used for shading computations).
  */
-struct Intersection {
+struct Intersection
+{
     /// Position of the surface intersection
     Point3f p;
     /// Unoccluded distance along the ray
@@ -32,18 +41,20 @@ struct Intersection {
     /// Geometric frame (based on the true geometry)
     Frame geoFrame;
     /// Pointer to the associated mesh
-    const Mesh *mesh;
+    const Mesh* mesh;
 
     /// Create an uninitialized intersection record
-    Intersection() : mesh(nullptr) { }
+    Intersection() : mesh(nullptr) {}
 
     /// Transform a direction vector into the local shading frame
-    Vector3f toLocal(const Vector3f &d) const {
+    Vector3f toLocal(const Vector3f& d) const
+    {
         return shFrame.toLocal(d);
     }
 
     /// Transform a direction vector from local to world coordinates
-    Vector3f toWorld(const Vector3f &d) const {
+    Vector3f toWorld(const Vector3f& d) const
+    {
         return shFrame.toWorld(d);
     }
 
@@ -59,7 +70,8 @@ struct Intersection {
  * the specifics of how to create its contents (e.g. by loading from an
  * external file)
  */
-class Mesh : public NoriObject {
+class Mesh : public NoriObject
+{
 public:
     /// Release all memory
     virtual ~Mesh();
@@ -77,7 +89,7 @@ public:
     float surfaceArea(uint32_t index) const;
 
     //// Return an axis-aligned bounding box of the entire mesh
-    const BoundingBox3f &getBoundingBox() const { return m_bbox; }
+    const BoundingBox3f& getBoundingBox() const { return m_bbox; }
 
     //// Return an axis-aligned bounding box containing the given triangle
     BoundingBox3f getBoundingBox(uint32_t index) const;
@@ -110,37 +122,37 @@ public:
      * \return
      *   \c true if an intersection has been detected
      */
-    bool rayIntersect(uint32_t index, const Ray3f &ray, float &u, float &v, float &t) const;
+    bool rayIntersect(uint32_t index, const Ray3f& ray, float& u, float& v, float& t) const;
 
     /// Return a pointer to the vertex positions
-    const MatrixXf &getVertexPositions() const { return m_V; }
+    const MatrixXf& getVertexPositions() const { return m_V; }
 
     /// Return a pointer to the vertex normals (or \c nullptr if there are none)
-    const MatrixXf &getVertexNormals() const { return m_N; }
+    const MatrixXf& getVertexNormals() const { return m_N; }
 
     /// Return a pointer to the texture coordinates (or \c nullptr if there are none)
-    const MatrixXf &getVertexTexCoords() const { return m_UV; }
+    const MatrixXf& getVertexTexCoords() const { return m_UV; }
 
     /// Return a pointer to the triangle vertex index list
-    const MatrixXu &getIndices() const { return m_F; }
+    const MatrixXu& getIndices() const { return m_F; }
 
     /// Is this mesh an area emitter?
     bool isEmitter() const { return m_emitter != nullptr; }
 
     /// Return a pointer to an attached area emitter instance
-    Emitter *getEmitter() { return m_emitter; }
+    Emitter* getEmitter() { return m_emitter; }
 
     /// Return a pointer to an attached area emitter instance (const version)
-    const Emitter *getEmitter() const { return m_emitter; }
+    const Emitter* getEmitter() const { return m_emitter; }
 
     /// Return a pointer to the BSDF associated with this mesh
-    const BSDF *getBSDF() const { return m_bsdf; }
+    const BSDF* getBSDF() const { return m_bsdf; }
 
     /// Register a child object (e.g. a BSDF) with the mesh
-    virtual void addChild(NoriObject *child);
+    virtual void addChild(NoriObject* child);
 
     /// Return the name of this mesh
-    const std::string &getName() const { return m_name; }
+    const std::string& getName() const { return m_name; }
 
     /// Return a human-readable summary of this instance
     std::string toString() const;
@@ -151,19 +163,25 @@ public:
      * */
     EClassType getClassType() const { return EMesh; }
 
+    const DiscretePDF& getPdf() const { return m_disPdf; }
+
+    SampleMeshResult sampleSurfaceUniform(Sampler* sampler) const;
+
 protected:
     /// Create an empty mesh
     Mesh();
 
 protected:
     std::string m_name;                  ///< Identifying name
-    MatrixXf      m_V;                   ///< Vertex positions
-    MatrixXf      m_N;                   ///< Vertex normals
-    MatrixXf      m_UV;                  ///< Vertex texture coordinates
-    MatrixXu      m_F;                   ///< Faces
-    BSDF         *m_bsdf = nullptr;      ///< BSDF of the surface
-    Emitter    *m_emitter = nullptr;     ///< Associated emitter, if any
+    MatrixXf m_V;                   ///< Vertex positions
+    MatrixXf m_N;                   ///< Vertex normals
+    MatrixXf m_UV;                  ///< Vertex texture coordinates
+    MatrixXu m_F;                   ///< Faces
+    BSDF* m_bsdf = nullptr;      ///< BSDF of the surface
+    Emitter* m_emitter = nullptr;     ///< Associated emitter, if any
     BoundingBox3f m_bbox;                ///< Bounding box of the mesh
+    DiscretePDF m_disPdf;
+    float m_area;
 };
 
 NORI_NAMESPACE_END
