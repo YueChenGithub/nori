@@ -18,6 +18,7 @@ struct EmitterQueryRecord
     Vector3f wi;
     float pdf;
     Ray3f shadowRay;
+    Point2f uv;
 
     EmitterQueryRecord(const Point3f& ref) : ref(ref) {}
 

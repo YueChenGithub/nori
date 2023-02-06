@@ -98,7 +98,8 @@ public:
     void activate();
 
     Mesh* getRandomEmitter(float random)const{
-        return m_meshes_emitter.empty()? nullptr :m_meshes_emitter[0];
+        int n = random * m_meshes_emitter.size();
+        return m_meshes_emitter.empty()? nullptr :m_meshes_emitter[n];
     }
 
     const std::vector<Mesh *>& getEmitters() const{ return m_meshes_emitter;}
